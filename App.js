@@ -1,22 +1,59 @@
 import React from 'react';
-import {Text, View, TouchableOpacity, Image, StyleSheet} from 'react-native';
+import {Text, View, TouchableOpacity, Image, StyleSheet, Clipboard} from 'react-native';
 import {StackNavigator} from 'react-navigation';
-import {Camera, Permissions, KeepAwake} from 'expo';
+import {Camera, Permissions, KeepAwake, takeSnapshotAsync} from 'expo';
+
+const buttonSize = 50;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  }, image: {
+    position: 'absolute', top: 0, left: 0, height: '100%', width: '100%',
+  }, buttonStyle: {
+    padding: 5,
+    backgroundColor: '#fff',
+    borderWidth: 4,
+    borderColor: '#aaa',
+    borderRadius: buttonSize / 2,
+    margin: 10
+  }, buttonContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end'
+  }
+});
 
 class Burkified extends React.Component {
-  static styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      overflow: 'hidden',
-    }
-  });
+  burkifiedView = null;
+  state = {
+    burkifiedUri: null
+  };
+
   render() {
     const params = this.props.navigation.state.params;
     return (
-      <View style={Burkified.styles.container}>
-        <Image source={{uri: params.image.uri}} style={{height: '100%', width: '100%'}}/>
+      <View ref={ref => this.burkifiedView = ref} style={styles.container}>
+        <Image style={styles.image} source={params.image}/>
+        <Image style={styles.image} source={require('./assets/burka.png')}/>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            onPress={async () => {
+              const imageBase64 = await takeSnapshotAsync(this.burkifiedView, {format: "png"});
+              Clipboard.setString(imageBase64);
+            }}>
+            <View style={styles.buttonStyle}>
+              <Image style={{
+                width: buttonSize,
+                height: buttonSize,
+              }} source={require('./assets/save_icon.png')}/>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -32,15 +69,6 @@ class Home extends React.Component {
     image: null,
   };
   camera = null;
-  buttonSize = 50;
-  buttonStyle = {
-    padding: 5,
-    backgroundColor: '#fff',
-    borderWidth: 4,
-    borderColor: '#aaa',
-    borderRadius: this.buttonSize / 2,
-    margin: 10
-  };
 
   async componentWillMount() {
     const {status} = await Permissions.askAsync(Permissions.CAMERA);
@@ -74,10 +102,10 @@ class Home extends React.Component {
                       : Camera.Constants.Type.back,
                   });
                 }}>
-                <View style={this.buttonStyle}>
+                <View style={styles.buttonStyle}>
                   <Image style={{
-                    width: this.buttonSize,
-                    height: this.buttonSize,
+                    width: buttonSize,
+                    height: buttonSize,
                   }}
                          source={require('./assets/camera_flip.png')}/>
                 </View>
@@ -88,10 +116,10 @@ class Home extends React.Component {
                     this.props.navigation.navigate('Burkified', {image: img});
                   });
                 }}>
-                <View style={this.buttonStyle}>
+                <View style={styles.buttonStyle}>
                   <Image style={{
-                    width: this.buttonSize,
-                    height: this.buttonSize,
+                    width: buttonSize,
+                    height: buttonSize,
                   }} source={require('./assets/burka.png')}/>
                 </View>
               </TouchableOpacity>
