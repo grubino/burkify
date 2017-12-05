@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "burkify",
-    "description": "An empty new project",
-    "slug": "burkify",
+    "description": "Offended?  Just burkify it!",
+    "slug": "burkify the planet!",
     "privacy": "public",
     "sdkVersion": "23.0.0",
     "version": "1.0.0",
@@ -15,7 +15,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.caraway.burkify"
+    }, "android": {
+      "package": "com.caraway.burkify"
     }
   }
 }

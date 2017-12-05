@@ -1,7 +1,7 @@
 import React from 'react';
-import {Text, View, TouchableOpacity, Image, StyleSheet, Clipboard} from 'react-native';
+import {Text, View, TouchableOpacity, Image, StyleSheet} from 'react-native';
 import {StackNavigator} from 'react-navigation';
-import {Camera, Permissions, KeepAwake, takeSnapshotAsync} from 'expo';
+import {Camera, Permissions, KeepAwake, FileSystem, takeSnapshotAsync} from 'expo';
 
 const buttonSize = 50;
 const styles = StyleSheet.create({
@@ -36,15 +36,20 @@ class Burkified extends React.Component {
 
   render() {
     const params = this.props.navigation.state.params;
+    const overlays = params.overlays;
     return (
       <View ref={ref => this.burkifiedView = ref} style={styles.container}>
         <Image style={styles.image} source={params.image}/>
-        <Image style={styles.image} source={require('./assets/burka.png')}/>
+        {overlays.map((img, i) => <Image key={i} style={img.style} source={img.image}/>)}
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={async () => {
-              const imageBase64 = await takeSnapshotAsync(this.burkifiedView, {format: "png"});
-              Clipboard.setString(imageBase64);
+              const data = await takeSnapshotAsync(this.burkifiedView, {format: 'png'});
+              FileSystem.moveAsync({
+                from: data,
+                to: `${FileSystem.documentDirectory}Burkified.png`
+              }).then(() => alert(`Saved to ${FileSystem.documentDirectory}!`)).catch(err => alert(JSON.stringify(err)));
             }}>
             <View style={styles.buttonStyle}>
               <Image style={{
@@ -113,7 +118,24 @@ class Home extends React.Component {
               <TouchableOpacity
                 onPress={async () => {
                   this.camera.takePictureAsync().then(img => {
-                    this.props.navigation.navigate('Burkified', {image: img});
+                    this.props.navigation.navigate('Burkified',
+                      {image: img, overlays: [
+                        {
+                          image: require('./assets/burka.png'),
+                          style: {position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}
+                        },
+                        {
+                          image: require('./assets/marxify.png'),
+                          style: {
+                            overflow: 'visible',
+                            position: 'absolute',
+                            top: '8%',
+                            left: '45%',
+                            width: '20%',
+                            height: '20%'
+                          }
+                        }]
+                      });
                   });
                 }}>
                 <View style={styles.buttonStyle}>
